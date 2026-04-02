@@ -13,7 +13,7 @@ interface ApiResponse<T> {
 async function apiFetch<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<T> {
 	const token = await getAuthToken()
 	if (!token) {
-		// Silent fail or handle as needed, the warning was for debugging
+		throw new Error('No se encontró token de autenticación. Por favor, inicia sesión nuevamente.')
 	}
 
 	const headers: Record<string, string> = {
@@ -47,7 +47,7 @@ export const api = {
 		}),
 	updateAvailability: (
 		id: string,
-		unit: { id: string; block: string; lot: string; status: string; [key: string]: unknown },
+		unit: { id: string; block: string; lot: number; status: string; [key: string]: unknown },
 	) =>
 		apiFetch<ApiResponse<unknown>>(`/projects/${encodeURIComponent(id)}/availability`, {
 			method: 'POST',

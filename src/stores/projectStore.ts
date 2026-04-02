@@ -14,11 +14,16 @@ export interface Timestamp {
 export interface Unit {
 	id: string
 	block: string
-	lot: string
+	lot: number
 	status: AvailabilityStatus
 	updated_at?: Timestamp | number
 	price?: number
-	area?: number
+	m2?: number
+	perimeter?: number
+	front?: number
+	left?: number
+	right?: number
+	back?: number
 	[key: string]: unknown
 }
 
@@ -31,6 +36,7 @@ export interface Project {
 	dbKey: string
 	url: string
 	thumbnailUrl: string
+	paymentStatus?: 'paid' | 'notPaid' | 'inProgress'
 	maintenanceMode: boolean
 	totalUnits: number
 	availableUnits: number
@@ -162,43 +168,45 @@ export const useProjectStore = defineStore('project', () => {
 		}
 	}
 
-	async function updateUnitStatus(projectId: string, unitId: string, newStatus: Unit['status']) {
-		// Local update for optimistic UI
-		// Prioritize currentProject as it has the units loaded
+	async function updateUnit(projectId: string, unitData: Partial<Unit> & { id: string; block: string; lot: number; status: AvailabilityStatus }) {
 		const project =
 			(currentProject.value?.id === projectId ? currentProject.value : null) ||
 			projects.value.find((p) => p.id === projectId)
 
-		if (project) {
-			if (!project.units) project.units = []
-			const unit = project.units.find((u) => u.id === unitId)
-			if (unit) {
-				const oldStatus = unit.status
-				unit.status = newStatus
+		if (!project) return
 
-				try {
-					if (Array.isArray(unit)) {
-						throw new Error('Internal Error: Unit is an array')
-					}
+		if (!project.units) project.units = []
+		const unit = project.units.find((u) => u.id === unitData.id)
+		const oldUnit = unit ? { ...unit } : null
 
-					const payload = {
-						id: unit.id,
-						block: unit.block,
-						lot: unit.lot,
-						status: newStatus,
-						price: unit.price,
-						area: unit.area,
-					}
-					await api.updateAvailability(projectId, payload)
-					// Update available units count
-					project.availableUnits = project.units.filter((u) => u.status === 'available').length
-				} catch (err: unknown) {
-					// Rollback on error
-					const errorObj = err as Error
-					unit.status = oldStatus
-					error.value = `Error actualizando estado: ${errorObj.message}`
-				}
+		// Optimistic update
+		if (unit) {
+			Object.assign(unit, unitData)
+		}
+
+		try {
+			const payload = {
+				id: unitData.id,
+				block: unitData.block,
+				lot: unitData.lot,
+				status: unitData.status,
+				price: unitData.price,
+				m2: unitData.m2,
+				perimeter: unitData.perimeter,
+				front: unitData.front,
+				left: unitData.left,
+				right: unitData.right,
+				back: unitData.back,
 			}
+			await api.updateAvailability(projectId, payload)
+			project.availableUnits = project.units.filter((u) => u.status === 'available').length
+		} catch (err: unknown) {
+			// Rollback on error
+			if (unit && oldUnit) {
+				Object.assign(unit, oldUnit)
+			}
+			const errorObj = err as Error
+			error.value = `Error actualizando unidad: ${errorObj.message}`
 		}
 	}
 
@@ -224,7 +232,7 @@ export const useProjectStore = defineStore('project', () => {
 		error,
 		fetchProjects,
 		fetchProjectById,
-		updateUnitStatus,
+		updateUnit,
 		unsubscribeFromUnits,
 	}
 })
