@@ -68,8 +68,8 @@ export const useProjectStore = defineStore('project', () => {
 			// Fetch units from RTDB for each project
 			const enriched = await Promise.all(
 				rawProjects.map(async (p) => {
-					const typeProject = p.typeProject || 'lotizer'
-					const dbKey = p.dbKey || p.id
+					const typeProject = encodeURIComponent(p.typeProject || 'lotizer')
+					const dbKey = encodeURIComponent(p.dbKey || p.id)
 					const path = `v2/${typeProject}/${dbKey}/data/availability`
 					try {
 						const snapshot = await get(dbRef(db, path))
@@ -131,8 +131,8 @@ export const useProjectStore = defineStore('project', () => {
 	function subscribeToUnits(project: Project) {
 		if (unsubscribe) unsubscribe()
 
-		const typeProject = project.typeProject || 'lotizer'
-		const dbKey = project.dbKey || project.id
+		const typeProject = encodeURIComponent(project.typeProject || 'lotizer')
+		const dbKey = encodeURIComponent(project.dbKey || project.id)
 		const path = `v2/${typeProject}/${dbKey}/data/availability`
 
 		const availabilityRef = dbRef(db, path)

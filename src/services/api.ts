@@ -39,9 +39,9 @@ async function apiFetch<T = unknown>(endpoint: string, options: RequestInit = {}
 
 export const api = {
 	getProjects: () => apiFetch<ApiResponse<{ projects: Project[] }>>('/projects'),
-	getProject: (id: string) => apiFetch<ApiResponse<Project>>(`/projects/${id}`),
+	getProject: (id: string) => apiFetch<ApiResponse<Project>>(`/projects/${encodeURIComponent(id)}`),
 	updateProject: (id: string, data: Record<string, unknown>) =>
-		apiFetch<ApiResponse<unknown>>(`/projects/${id}`, {
+		apiFetch<ApiResponse<unknown>>(`/projects/${encodeURIComponent(id)}`, {
 			method: 'PUT',
 			body: JSON.stringify(data),
 		}),
@@ -49,7 +49,7 @@ export const api = {
 		id: string,
 		unit: { id: string; block: string; lot: string; status: string; [key: string]: unknown },
 	) =>
-		apiFetch<ApiResponse<unknown>>(`/projects/${id}/availability`, {
+		apiFetch<ApiResponse<unknown>>(`/projects/${encodeURIComponent(id)}/availability`, {
 			method: 'POST',
 			body: JSON.stringify(unit),
 		}),
