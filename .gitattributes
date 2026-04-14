@@ -1,1 +1,31 @@
+# Force LF for all text files
 * text=auto eol=lf
+
+# Normalize source code
+*.js text eol=lf
+*.ts text eol=lf
+*.vue text eol=lf
+*.astro text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.webp binary
+*.avif binary
+
+# Fonts
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+
+# Lockfiles (prevent merge conflicts)
+bun.lock binary -diff
+package-lock.json binary -diff
